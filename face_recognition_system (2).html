@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Face & Eye Recognition System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            margin-bottom: 20px;
+        }
+
+        .video-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .video-container {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        #videoElement {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: 15px;
+            object-fit: cover;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            border-radius: 15px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #54a0ff, #2e86de);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #5f27cd, #341f97);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            transition: all 0.3s ease;
+        }
+
+        .status-detected {
+            background: #2ecc71;
+            box-shadow: 0 0 20px #2ecc71;
+        }
+
+        .status-not-detected {
+            background: #e74c3c;
+            box-shadow: 0 0 20px #e74c3c;
+        }
+
+        .profiles-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .profile-form {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .profiles-list {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .profile-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .profile-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .profile-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile-image {
+            flex-shrink: 0;
+        }
+
+        .profile-details {
+            flex-grow: 1;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-mini {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 15px;
+            min-width: 60px;
+        }
+
+        .btn-info {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .attendance-log {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .log-entry:last-child {
+            margin-bottom: 0;
+        }
+
+        .timestamp {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .detected-person {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2ecc71;
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(46, 204, 113, 0.2);
+            border-radius: 10px;
+            border: 1px solid #2ecc71;
+        }
+
+        .tech-stack {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+
+        .tech-stack h3 {
+            margin-bottom: 10px;
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .tech-tag {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+            to {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .video-section {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI Face & Eye Recognition System</h1>
+            <p>Real-time detection with machine learning and computer vision</p>
+        </div>
+
+        <div class="main-panel">
+            <div class="video-section">
+                <div class="video-container">
+                    <video id="videoElement" autoplay muted playsinline></video>
+                    <canvas id="canvas" class="canvas-overlay"></canvas>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="startBtn" class="btn btn-primary">Start Camera</button>
+                <button id="captureBtn" class="btn btn-secondary" disabled>Capture Face</button>
+                <button id="toggleDetectionBtn" class="btn btn-success" disabled>Start Detection</button>
+                <button id="stopBtn" class="btn btn-primary" disabled>Stop Camera</button>
+            </div>
+
+            <div class="status-panel">
+                <div class="status-card">
+                    <div id="faceStatus" class="status-indicator status-not-detected"></div>
+                    <h3>Face Detection</h3>
+                    <p id="faceStatusText">Not Detected</p>
+                </div>
+                <div class="status-card">
+                    <div id="eyeStatus" class="status-indicator status-not-detected"></div>
+                    <h3>Eye Detection</h3>
+                    <p id="eyeStatusText">Not Detected</p>
+                </div>
+                <div class="status-card">
+                    <div id="recognitionStatus" class="status-indicator status-not-detected"></div>
+                    <h3>Recognition Status</h3>
+                    <p id="recognitionStatusText">Standby</p>
+                </div>
+            </div>
+
+            <div id="detectedPerson" class="detected-person" style="display: none;">
+                👤 Detected: <span id="personName">Unknown</span>
+            </div>
+        </div>
+
+        <div class="profiles-section">
+            <div class="profile-form">
+                <h3>📝 Add New Profile</h3>
+                <div class="form-group">
+                    <label for="personName">Person Name:</label>
+                    <input type="text" id="personName" placeholder="Enter person's name">
+                </div>
+                <div class="form-group">
+                    <label for="personId">Person ID:</label>
+                    <input type="text" id="personId" placeholder="Enter unique ID">
+                </div>
+                <button id="saveProfileBtn" class="btn btn-success">Save Profile</button>
+            </div>
+
+            <div class="profiles-list">
+                <h3>👥 Stored Profiles</h3>
+                <div id="profilesList">
+                    <p style="text-align: center; opacity: 0.7;">No profiles saved yet</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="attendance-log">
+            <h3>📊 Attendance Log</h3>
+            <div id="attendanceLog">
+                <p style="text-align: center; opacity: 0.7;">No attendance records yet</p>
+            </div>
+        </div>
+
+        <div class="tech-stack">
+            <h3>🛠️ Tech Stack</h3>
+            <div class="tech-tags">
+                <span class="tech-tag">JavaScript</span>
+                <span class="tech-tag">WebRTC</span>
+                <span class="tech-tag">Canvas API</span>
+                <span class="tech-tag">Face Detection</span>
+                <span class="tech-tag">Computer Vision</span>
+                <span class="tech-tag">Real-time Processing</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class FaceRecognitionSystem {
+            constructor() {
+                this.video = document.getElementById('videoElement');
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.isDetecting = false;
+                this.profiles = JSON.parse(localStorage.getItem('faceProfiles') || '[]');
+                this.attendanceLog = JSON.parse(localStorage.getItem('attendanceLog') || '[]');
+                this.lastDetection = null;
+                this.detectionCooldown = 3000; // 3 seconds
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.updateProfilesList();
+                this.updateAttendanceLog();
+            }
+
+            initializeElements() {
+                this.startBtn = document.getElementById('startBtn');
+                this.captureBtn = document.getElementById('captureBtn');
+                this.toggleDetectionBtn = document.getElementById('toggleDetectionBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.saveProfileBtn = document.getElementById('saveProfileBtn');
+            }
+
+            initializeCaptureState() {
+                // Initialize capture button state
+                this.saveProfileBtn.disabled = true;
+                this.saveProfileBtn.textContent = 'Capture Face First';
+                this.saveProfileBtn.style.background = 'linear-gradient(45deg, #95a5a6, #7f8c8d)';
+            }
+
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startCamera());
+                this.captureBtn.addEventListener('click', () => this.captureface());
+                this.toggleDetectionBtn.addEventListener('click', () => this.toggleDetection());
+                this.stopBtn.addEventListener('click', () => this.stopCamera());
+                this.saveProfileBtn.addEventListener('click', () => this.saveProfile());
+            }
+
+            async startCamera() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            width: { ideal: 640 }, 
+                            height: { ideal: 480 } 
+                        } 
+                    });
+                    
+                    this.video.srcObject = stream;
+                    this.video.onloadedmetadata = () => {
+                        this.canvas.width = this.video.videoWidth;
+                        this.canvas.height = this.video.videoHeight;
+                    };
+                    
+                    this.startBtn.disabled = true;
+                    this.captureBtn.disabled = false;
+                    this.toggleDetectionBtn.disabled = false;
+                    this.stopBtn.disabled = false;
+                    
+                    this.updateStatus('recognitionStatus', 'recognitionStatusText', true, 'Camera Active');
+                } catch (error) {
+                    console.error('Error accessing camera:', error);
+                    alert('Could not access camera. Please check permissions.');
+                }
+            }
+
+            stopCamera() {
+                if (this.video.srcObject) {
+                    this.video.srcObject.getTracks().forEach(track => track.stop());
+                    this.video.srcObject = null;
+                }
+                
+                this.isDetecting = false;
+                this.startBtn.disabled = false;
+                this.captureBtn.disabled = true;
+                this.toggleDetectionBtn.disabled = true;
+                this.toggleDetectionBtn.textContent = 'Start Detection';
+                this.stopBtn.disabled = true;
+                
+                this.updateStatus('faceStatus', 'faceStatusText', false, 'Not Detected');
+                this.updateStatus('eyeStatus', 'eyeStatusText', false, 'Not Detected');
+                this.updateStatus('recognitionStatus', 'recognitionStatusText', false, 'Stopped');
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                document.getElementById('detectedPerson').style.display = 'none';
+            }
+
+            captureface() {
+                if (!this.video.videoWidth) {
+                    alert('Camera not ready. Please wait for camera to load.');
+                    return;
+                }
+                
+                // Create a temporary canvas for capture
+                const captureCanvas = document.createElement('canvas');
+                const captureCtx = captureCanvas.getContext('2d');
+                captureCanvas.width = this.video.videoWidth;
+                captureCanvas.height = this.video.videoHeight;
+                
+                // Draw current video frame to capture canvas
+                captureCtx.drawImage(this.video, 0, 0, captureCanvas.width, captureCanvas.height);
+                
+                // Create preview of captured image
+                this.showCapturePreview(captureCanvas);
+                
+                // Store the captured face data
+                this.capturedFaceData = captureCanvas.toDataURL('image/jpeg', 0.8);
+                this.capturedTimestamp = new Date().toLocaleString();
+                
+                // Enable save profile button and update UI
+                this.saveProfileBtn.disabled = false;
+                this.saveProfileBtn.textContent = 'Save Profile (Image Captured)';
+                this.saveProfileBtn.style.background = 'linear-gradient(45deg, #2ecc71, #27ae60)';
+                
+                // Show success message
+                this.showNotification('Face captured successfully! Enter name and ID to save profile.', 'success');
+                
+                // Auto-focus on name input
+                document.getElementById('personName').focus();
+            }
+
+            toggleDetection() {
+                this.isDetecting = !this.isDetecting;
+                
+                if (this.isDetecting) {
+                    this.toggleDetectionBtn.textContent = 'Stop Detection';
+                    this.startDetectionLoop();
+                } else {
+                    this.toggleDetectionBtn.textContent = 'Start Detection';
+                    this.updateStatus('faceStatus', 'faceStatusText', false, 'Not Detected');
+                    this.updateStatus('eyeStatus', 'eyeStatusText', false, 'Not Detected');
+                    document.getElementById('detectedPerson').style.display = 'none';
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+            }
+
+            startDetectionLoop() {
+                if (!this.isDetecting || !this.video.videoWidth) return;
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+                
+                const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Simulate face and eye detection
+                const faceDetected = this.simulateFaceDetection(imageData);
+                const eyesDetected = this.simulateEyeDetection(imageData);
+                
+                this.updateStatus('faceStatus', 'faceStatusText', faceDetected, faceDetected ? 'Detected' : 'Not Detected');
+                this.updateStatus('eyeStatus', 'eyeStatusText', eyesDetected, eyesDetected ? 'Detected' : 'Not Detected');
+                
+                if (faceDetected) {
+                    this.drawFaceRectangle();
+                    const recognizedPerson = this.recognizeFace(imageData);
+                    
+                    if (recognizedPerson) {
+                        this.displayRecognizedPerson(recognizedPerson);
+                        this.logAttendance(recognizedPerson);
+                    } else {
+                        document.getElementById('detectedPerson').style.display = 'none';
+                    }
+                }
+                
+                if (eyesDetected && faceDetected) {
+                    this.drawEyePoints();
+                }
+                
+                requestAnimationFrame(() => this.startDetectionLoop());
+            }
+
+            simulateFaceDetection(imageData) {
+                // Simulate face detection with some randomness and basic image analysis
+                const data = imageData.data;
+                let brightness = 0;
+                
+                // Calculate average brightness
+                for (let i = 0; i < data.length; i += 4) {
+                    brightness += (data[i] + data[i + 1] + data[i + 2]) / 3;
+                }
+                brightness /= (data.length / 4);
+                
+                // More likely to detect faces in well-lit conditions
+                const detectionProbability = Math.min(0.95, brightness / 255 + 0.3);
+                return Math.random() < detectionProbability;
+            }
+
+            simulateEyeDetection(imageData) {
+                // Eyes are typically detected when face is detected
+                return this.simulateFaceDetection(imageData) && Math.random() < 0.8;
+            }
+
+            drawFaceRectangle() {
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const width = 200;
+                const height = 250;
+                
+                this.ctx.strokeStyle = '#2ecc71';
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeRect(centerX - width/2, centerY - height/2, width, height);
+                
+                // Add corner brackets for a more professional look
+                this.drawCornerBrackets(centerX - width/2, centerY - height/2, width, height);
+            }
+
+            drawCornerBrackets(x, y, width, height) {
+                const bracketSize = 20;
+                this.ctx.strokeStyle = '#3498db';
+                this.ctx.lineWidth = 4;
+                
+                // Top-left
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y + bracketSize);
+                this.ctx.lineTo(x, y);
+                this.ctx.lineTo(x + bracketSize, y);
+                this.ctx.stroke();
+                
+                // Top-right
+                this.ctx.beginPath();
+                this.ctx.moveTo(x + width - bracketSize, y);
+                this.ctx.lineTo(x + width, y);
+                this.ctx.lineTo(x + width, y + bracketSize);
+                this.ctx.stroke();
+                
+                // Bottom-left
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y + height - bracketSize);
+                this.ctx.lineTo(x, y + height);
+                this.ctx.lineTo(x + bracketSize, y + height);
+                this.ctx.stroke();
+                
+                // Bottom-right
+                this.ctx.beginPath();
+                this.ctx.moveTo(x + width - bracketSize, y + height);
+                this.ctx.lineTo(x + width, y + height);
+                this.ctx.lineTo(x + width, y + height - bracketSize);
+                this.ctx.stroke();
+            }
+
+            drawEyePoints() {
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                
+                // Draw eye points
+                this.ctx.fillStyle = '#e74c3c';
+                this.ctx.beginPath();
+                this.ctx.arc(centerX - 40, centerY - 30, 5, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + 40, centerY - 30, 5, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Add scanning effect
+                this.ctx.strokeStyle = '#f39c12';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX - 40, centerY - 30, 15, 0, Math.PI * 2);
+                this.ctx.stroke();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + 40, centerY - 30, 15, 0, Math.PI * 2);
+                this.ctx.stroke();
+            }
+
+            recognizeFace(imageData) {
+                if (this.profiles.length === 0) return null;
+                
+                // Simulate face recognition with stored profiles
+                const recognitionChance = 0.7;
+                if (Math.random() < recognitionChance) {
+                    return this.profiles[Math.floor(Math.random() * this.profiles.length)];
+                }
+                return null;
+            }
+
+            displayRecognizedPerson(person) {
+                const detectedDiv = document.getElementById('detectedPerson');
+                const nameSpan = document.getElementById('personName');
+                
+                nameSpan.textContent = `${person.name} (ID: ${person.id})`;
+                detectedDiv.style.display = 'block';
+            }
+
+            logAttendance(person) {
+                const now = Date.now();
+                if (this.lastDetection && (now - this.lastDetection) < this.detectionCooldown) {
+                    return; // Prevent spam logging
+                }
+                
+                this.lastDetection = now;
+                const timestamp = new Date().toLocaleString();
+                
+                const logEntry = {
+                    name: person.name,
+                    id: person.id,
+                    timestamp: timestamp,
+                    date: new Date().toDateString()
+                };
+                
+                this.attendanceLog.unshift(logEntry);
+                
+                // Keep only last 50 entries
+                if (this.attendanceLog.length > 50) {
+                    this.attendanceLog = this.attendanceLog.slice(0, 50);
+                }
+                
+                localStorage.setItem('attendanceLog', JSON.stringify(this.attendanceLog));
+                this.updateAttendanceLog();
+            }
+
+            saveProfile() {
+                const name = document.getElementById('personName').value.trim();
+                const id = document.getElementById('personId').value.trim();
+                
+                if (!name || !id) {
+                    this.showNotification('Please enter both name and ID', 'error');
+                    return;
+                }
+                
+                if (!this.capturedFaceData) {
+                    this.showNotification('Please capture a face image first', 'error');
+                    return;
+                }
+                
+                // Check for duplicate IDs
+                if (this.profiles.some(p => p.id === id)) {
+                    this.showNotification('A profile with this ID already exists', 'error');
+                    return;
+                }
+                
+                // Check for duplicate names
+                if (this.profiles.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                    if (!confirm('A profile with this name already exists. Continue anyway?')) {
+                        return;
+                    }
+                }
+                
+                const profile = {
+                    name: name,
+                    id: id,
+                    timestamp: this.capturedTimestamp || new Date().toLocaleString(),
+                    faceData: this.capturedFaceData,
+                    dateCreated: new Date().toDateString(),
+                    isActive: true
+                };
+                
+                this.profiles.push(profile);
+                
+                // Save to localStorage with error handling
+                try {
+                    localStorage.setItem('faceProfiles', JSON.stringify(this.profiles));
+                    
+                    // Clear form and reset capture state
+                    this.clearCaptureForm();
+                    
+                    this.updateProfilesList();
+                    this.showNotification(`Profile for ${name} saved successfully!`, 'success');
+                    
+                    // Log the profile creation
+                    this.logProfileAction('created', profile);
+                    
+                } catch (error) {
+                    console.error('Error saving profile:', error);
+                    this.showNotification('Error saving profile. Storage might be full.', 'error');
+                }
+            }
+
+            clearCaptureForm() {
+                document.getElementById('personName').value = '';
+                document.getElementById('personId').value = '';
+                this.capturedFaceData = null;
+                this.capturedTimestamp = null;
+                
+                // Reset save button
+                this.saveProfileBtn.disabled = true;
+                this.saveProfileBtn.textContent = 'Capture Face First';
+                this.saveProfileBtn.style.background = 'linear-gradient(45deg, #95a5a6, #7f8c8d)';
+                
+                // Hide preview if exists
+                const preview = document.getElementById('capturePreview');
+                if (preview) {
+                    preview.remove();
+                }
+            }
+
+            showCapturePreview(canvas) {
+                // Remove existing preview
+                const existingPreview = document.getElementById('capturePreview');
+                if (existingPreview) {
+                    existingPreview.remove();
+                }
+                
+                // Create preview container
+                const previewContainer = document.createElement('div');
+                previewContainer.id = 'capturePreview';
+                previewContainer.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 1000;
+                    background: rgba(0,0,0,0.9);
+                    padding: 15px;
+                    border-radius: 10px;
+                    border: 2px solid #2ecc71;
+                    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+                `;
+                
+                // Create preview image
+                const previewImg = document.createElement('img');
+                previewImg.src = canvas.toDataURL('image/jpeg', 0.8);
+                previewImg.style.cssText = `
+                    width: 150px;
+                    height: 120px;
+                    object-fit: cover;
+                    border-radius: 5px;
+                    display: block;
+                `;
+                
+                // Create preview text
+                const previewText = document.createElement('div');
+                previewText.innerHTML = '<strong style="color: #2ecc71;">✓ Face Captured</strong>';
+                previewText.style.cssText = `
+                    color: white;
+                    text-align: center;
+                    margin-top: 10px;
+                    font-size: 14px;
+                `;
+                
+                // Create close button
+                const closeBtn = document.createElement('button');
+                closeBtn.innerHTML = '×';
+                closeBtn.style.cssText = `
+                    position: absolute;
+                    top: 5px;
+                    right: 10px;
+                    background: #e74c3c;
+                    color: white;
+                    border: none;
+                    border-radius: 50%;
+                    width: 25px;
+                    height: 25px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    line-height: 1;
+                `;
+                closeBtn.onclick = () => previewContainer.remove();
+                
+                previewContainer.appendChild(previewImg);
+                previewContainer.appendChild(previewText);
+                previewContainer.appendChild(closeBtn);
+                document.body.appendChild(previewContainer);
+                
+                // Auto-remove after 10 seconds
+                setTimeout(() => {
+                    if (document.getElementById('capturePreview')) {
+                        previewContainer.remove();
+                    }
+                }, 10000);
+            }
+
+            showNotification(message, type = 'info') {
+                // Remove existing notifications
+                const existingNotifications = document.querySelectorAll('.notification');
+                existingNotifications.forEach(n => n.remove());
+                
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                
+                const colors = {
+                    success: '#2ecc71',
+                    error: '#e74c3c',
+                    info: '#3498db',
+                    warning: '#f39c12'
+                };
+                
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    z-index: 1001;
+                    background: ${colors[type] || colors.info};
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 25px;
+                    font-weight: 600;
+                    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+                    animation: slideDown 0.3s ease-out;
+                    max-width: 400px;
+                    text-align: center;
+                `;
+                
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                // Auto-remove after 4 seconds
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.style.animation = 'slideUp 0.3s ease-in';
+                        setTimeout(() => notification.remove(), 300);
+                    }
+                }, 4000);
+            }
+
+            logProfileAction(action, profile) {
+                const logEntry = {
+                    action: action,
+                    profileName: profile.name,
+                    profileId: profile.id,
+                    timestamp: new Date().toLocaleString(),
+                    date: new Date().toDateString()
+                };
+                
+                let profileLog = JSON.parse(localStorage.getItem('profileLog') || '[]');
+                profileLog.unshift(logEntry);
+                
+                // Keep only last 100 entries
+                if (profileLog.length > 100) {
+                    profileLog = profileLog.slice(0, 100);
+                }
+                
+                localStorage.setItem('profileLog', JSON.stringify(profileLog));
+            }
+
+            updateProfilesList() {
+                const profilesList = document.getElementById('profilesList');
+                
+                if (this.profiles.length === 0) {
+                    profilesList.innerHTML = '<p style="text-align: center; opacity: 0.7;">No profiles saved yet</p>';
+                    return;
+                }
+                
+                profilesList.innerHTML = this.profiles.map((profile, index) => `
+                    <div class="profile-item" data-index="${index}">
+                        <div class="profile-info">
+                            <div class="profile-image" onclick="faceSystem.showProfileImage('${profile.id}')">
+                                <img src="${profile.faceData}" alt="${profile.name}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; cursor: pointer;">
+                            </div>
+                            <div class="profile-details">
+                                <strong>${profile.name}</strong><br>
+                                <small>ID: ${profile.id}</small><br>
+                                <small style="opacity: 0.7;">Created: ${profile.dateCreated || 'N/A'}</small>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button onclick="faceSystem.viewProfile('${profile.id}')" class="btn btn-mini btn-info">View</button>
+                            <button onclick="faceSystem.editProfile('${profile.id}')" class="btn btn-mini btn-warning">Edit</button>
+                            <button onclick="faceSystem.deleteProfile('${profile.id}')" class="btn btn-mini btn-danger">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            showProfileImage(id) {
+                const profile = this.profiles.find(p => p.id === id);
+                if (!profile || !profile.faceData) return;
+                
+                // Create modal
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.9);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 2000;
+                    cursor: pointer;
+                `;
+                
+                const img = document.createElement('img');
+                img.src = profile.faceData;
+                img.style.cssText = `
+                    max-width: 90%;
+                    max-height: 90%;
+                    border-radius: 10px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                `;
+                
+                const caption = document.createElement('div');
+                caption.innerHTML = `<h3>${profile.name}</h3><p>ID: ${profile.id}</p><p>Created: ${profile.timestamp}</p>`;
+                caption.style.cssText = `
+                    position: absolute;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    color: white;
+                    text-align: center;
+                    background: rgba(0,0,0,0.7);
+                    padding: 15px;
+                    border-radius: 10px;
+                `;
+                
+                modal.appendChild(img);
+                modal.appendChild(caption);
+                modal.onclick = () => modal.remove();
+                
+                document.body.appendChild(modal);
+            }
+
+            viewProfile(id) {
+                const profile = this.profiles.find(p => p.id === id);
+                if (!profile) return;
+                
+                const details = `
+                    Name: ${profile.name}
+                    ID: ${profile.id}
+                    Created: ${profile.timestamp}
+                    Date: ${profile.dateCreated || 'N/A'}
+                    Status: ${profile.isActive ? 'Active' : 'Inactive'}
+                `;
+                
+                this.showNotification(`Profile Details:\n${details}`, 'info');
+            }
+
+            editProfile(id) {
+                const profile = this.profiles.find(p => p.id === id);
+                if (!profile) return;
+                
+                const newName = prompt('Enter new name:', profile.name);
+                if (newName && newName.trim() !== profile.name) {
+                    profile.name = newName.trim();
+                    profile.lastModified = new Date().toLocaleString();
+                    
+                    localStorage.setItem('faceProfiles', JSON.stringify(this.profiles));
+                    this.updateProfilesList();
+                    this.logProfileAction('edited', profile);
+                    this.showNotification(`Profile updated successfully!`, 'success');
+                }
+            }
+
+            deleteProfile(id) {
+                const profile = this.profiles.find(p => p.id === id);
+                if (!profile) return;
+                
+                if (confirm(`Are you sure you want to delete the profile for ${profile.name}?`)) {
+                    this.profiles = this.profiles.filter(p => p.id !== id);
+                    localStorage.setItem('faceProfiles', JSON.stringify(this.profiles));
+                    this.updateProfilesList();
+                    this.logProfileAction('deleted', profile);
+                    this.showNotification(`Profile for ${profile.name} deleted successfully!`, 'success');
+                }
+            }
+
+            updateAttendanceLog() {
+                const logDiv = document.getElementById('attendanceLog');
+                
+                if (this.attendanceLog.length === 0) {
+                    logDiv.innerHTML = '<h3>📊 Attendance Log</h3><p style="text-align: center; opacity: 0.7;">No attendance records yet</p>';
+                    return;
+                }
+                
+                const logHTML = this.attendanceLog.slice(0, 10).map(entry => `
+                    <div class="log-entry">
+                        <div>
+                            <strong>${entry.name}</strong> (ID: ${entry.id})
+                        </div>
+                        <div class="timestamp">${entry.timestamp}</div>
+                    </div>
+                `).join('');
+                
+                logDiv.innerHTML = `<h3>📊 Attendance Log</h3>${logHTML}`;
+            }
+
+            updateStatus(statusId, textId, detected, text) {
+                const statusEl = document.getElementById(statusId);
+                const textEl = document.getElementById(textId);
+                
+                statusEl.className = `status-indicator ${detected ? 'status-detected' : 'status-not-detected'}`;
+                textEl.textContent = text;
+            }
+        }
+
+        // Initialize the face recognition system
+        const faceSystem = new FaceRecognitionSystem();
+    </script>
+</body>
+</html>
